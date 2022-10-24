@@ -1,0 +1,523 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Mangement</title>
+    <script src="MusicalInst.js"></script>
+    <!--JQuery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!--Bootstrap-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <script>
+        /////////////localStorage Arrays////////////////
+        //MUSIC
+        ArraysMusic = new Object();
+        ArraysMusic.name = [];
+        ArraysMusic.short_description = [];
+        ArraysMusic.price = [];
+        ArraysMusic.image = [];
+        ArraysMusic.amount = [];
+        ArraysMusic.category = [];
+        ArraysMusic.check_in_stock = [];
+        ArraysMusic.manufacturer = [];
+        //MUSIC.TAGS
+        tags = new Object();
+        tags.material = [];
+        tags.Importercountry = [];
+        ArraysMusic.tags = tags;
+        //sales List
+        salesList = new Object();
+        salesList.price = [];
+        salesList.sale = [];
+        //Name Array
+        ArrayMusicSubsN = ["name", "short_description", "price", "image", "amount", "category", "check_in_stock", "manufacturer", "tags"];//All the Array subs
+        //Cart Array//
+        Cart = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+        //Load The Protucts to the Array
+        function LoadProductsFromList() {
+            for (var i = 0; i < ArrayMusicSubsN.length; i++) {//takes the array sub
+                for (var j = 0; j < musicalInstruments.length; j++) {//takes the array from the list
+                    if (i == 8) {//spical placement for tags
+                        var tmpA = musicalInstruments[j].tags[0].material.split();
+                        var tmpB = musicalInstruments[j].tags[1].Importer_country.split();
+                        ArraysMusic.tags.material.push(tmpA);
+                        ArraysMusic.tags.Importercountry.push(tmpB);
+                    }
+                    else {//all the others arrays
+                        var tmpA = eval("musicalInstruments[j]." + ArrayMusicSubsN[i] + ".split();");
+                        eval("ArraysMusic." + ArrayMusicSubsN[i] + ".push(tmpA)");
+                    }
+                }
+            }
+        }
+
+        //load existing storage
+        function LoadFromStorage() {
+
+            if (localStorage.ArraysMusic != undefined) {
+                ArraysMusic = JSON.parse(localStorage["ArraysMusic"]);
+            }
+            if (localStorage.Cart != undefined) {
+                Cart = JSON.parse(localStorage["Cart"]);
+            }
+            if (localStorage.salesList != undefined) {
+                salesList = JSON.parse(localStorage["salesList"]);
+            }
+
+        }
+
+        //store to the storage
+        function StoreToStorage() {
+            ArraysMusicS = JSON.stringify(ArraysMusic);
+            localStorage.setItem("ArraysMusic", ArraysMusicS);
+
+            CartS = JSON.stringify(Cart);
+            localStorage.setItem("Cart", CartS);
+
+            salesListS = JSON.stringify(salesList);
+            localStorage.setItem("salesList", salesListS);
+        }
+
+        //load The Storage
+        function LoadStorage() {
+
+            //if localStorage exist
+            if (localStorage.ArraysMusic == undefined) {
+                LoadProductsFromList();
+            }
+            //if localStorage not exist
+            else {
+                LoadFromStorage();
+            }
+
+            showStorage();
+            $("#newStorage").hide();//hides the add storage form
+            addNewCategory();
+            upDateSelection();
+        }
+
+        //show the storage
+        function showStorage() {
+            ArrayMusicSubs = ["name", "short_description", "price", "image", "amount", "category", "check_in_stock", "manufacturer", "tags", "edit", "Sales"];
+            storageProducts = "";
+            storageProducts += "<table>";
+            storageProducts += "<thead>";
+            storageProducts += "<tr>";//the head of the table
+            for (i = 0; i < ArrayMusicSubs.length; i++) {
+                storageProducts += "<th>" + ArrayMusicSubs[i] + "</th>";
+            }
+            storageProducts += "</tr>";
+            storageProducts += "</thead>";
+            storageProducts += "<tbody>";//the body of the table
+            for (i = 0; i < ArraysMusic.name.length; i++) {
+                storageProducts += "<tr>";
+                for (j = 0; j < ArrayMusicSubs.length; j++) {
+                    if (j == 9) {//changing the amount
+                        storageProducts += "<td>";
+                        storageProducts += "<input type='number' class='inPf' id='quantity" + i + "' name='quantity' value='" + ArraysMusic.amount[i] + "' min='0'>";
+                        storageProducts += "<br><button id='newAmount" + i + "' onclick='editNewAmount(" + i + ")'>submit new amount</button>";
+                        storageProducts += "<br><button id='delete" + i + "' onclick='deleteRow(" + i + ")'>delete item</button>";
+                        storageProducts += "</td>";
+                    }
+                    else if (j == 10) {//select sale
+                        storageProducts += "<td>";
+                        storageProducts += "<select id='sales" + i + "' style='width: 60px;'>";
+                        storageProducts += "<option selected id='sale0" + i + "'>none</option>";
+                        storageProducts += "<option id='sale1" + i + "'>50% on product</option>";
+                        storageProducts += "<option id='sale2" + i + "'>10% on product</option>";
+                        storageProducts += "</select>"
+                        storageProducts += "<br><button id='saleB" + i + "' onclick='SaleSelect(" + i + ")'>submit sale</button>";
+                        storageProducts += "</td>";
+                    }
+                    else {
+                        if (j == 8) {//tags
+                            ma = ArraysMusic.tags.material[i];
+                            ins = ArraysMusic.tags.Importercountry[i];
+                            if (ma == undefined || ins == undefined) {
+                                ma = "0";
+                            }
+                            storageProducts += "<td>";
+                            storageProducts += "material:<br>" + ma.toString() + "<hr>Importer country:<br>" + ins.toString() + "";
+                            storageProducts += "</td>";
+                        }
+                        else {//regular info
+                            ma = eval("ArraysMusic." + ArrayMusicSubs[j] + "[i]");
+                            if (ma == undefined) {
+                                ma = "0";
+                            }
+                            storageProducts += "<td>" + ma.toString() + "</td>";
+                        }
+
+                    }
+                }
+                storageProducts += "</tr>";
+            }
+            storageProducts += "</tbody>";
+            storageProducts += "</table>";
+
+            document.getElementById("ItemsInfo").innerHTML = storageProducts;
+        }
+
+        //edits amount
+        function editNewAmount(i) {
+            newAmount = document.getElementById("quantity" + i + "").value;
+            ArraysMusic.amount[i] = [newAmount.toString()];
+            StoreToStorage()
+            showStorage();
+            upDateSelection();
+        }
+
+        //adds new instrument catagory
+        function addNewInstrument() {
+            var x = document.getElementById("category");
+            var option = document.createElement("option");
+            option.text = document.getElementById("categoryN").value;
+            x.add(option);
+        }
+
+        //Show/hide Form
+        function addTostorage(num) {
+            if (num == 0) {
+                $("#newStorage").show();
+                $("#addInst").hide();
+            }
+            else {
+                $("#newStorage").hide();
+                $("#addInst").show();
+            }
+
+        }
+
+        //submit The Form
+        function submitTheForm() {
+
+            num = ArraysMusic.name.length;
+            ArraysMusic.name[num] = [document.getElementById("name").value];
+            ArraysMusic.short_description[num] = [document.getElementById("short_description").value];
+            ArraysMusic.price[num] = [document.getElementById("price").value];
+
+
+            if (document.getElementById("image").value == "") {
+                ArraysMusic.image[num] = ["https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/600px-No_image_available.svg.png"]
+            }
+            else {
+                ArraysMusic.image[num] = [document.getElementById("image").value];//if
+            }
+
+            ArraysMusic.amount[num] = [document.getElementById("amount").value];
+            ArraysMusic.category[num] = [document.getElementById("category").value];
+            ArraysMusic.check_in_stock[num] = [document.getElementById("check_in_stock").value];
+            ArraysMusic.manufacturer[num] = [document.getElementById("manufacturer").value];
+            ArraysMusic.tags.material[num] = [document.getElementById("material").value];
+            ArraysMusic.tags.Importercountry[num] = [document.getElementById("Importercountry").value];
+
+
+            Cart[num] = parseInt(0);
+
+            addNewCategory();
+
+            StoreToStorage()
+            showStorage();
+            $("#newStorage").hide();
+            $("#addInst").show();
+        }
+
+        //deleteItem
+        function deleteRow(r) {
+
+            ArraysMusic.name.splice(r, 1);
+            ArraysMusic.short_description.splice(r, 1);
+            ArraysMusic.price.splice(r, 1);
+            ArraysMusic.image.splice(r, 1);
+            ArraysMusic.amount.splice(r, 1);
+            ArraysMusic.category.splice(r, 1);
+            ArraysMusic.check_in_stock.splice(r, 1);
+            ArraysMusic.manufacturer.splice(r, 1);
+            ArraysMusic.tags.material.splice(r, 1);
+            ArraysMusic.tags.Importercountry.splice(r, 1);
+
+            Cart.splice(r, 1);
+            salesList.price.splice(r, 1);
+            salesList.sale.splice(r, 1);
+
+            StoreToStorage();
+            showStorage();
+            addNewCategory();
+            upDateSelection();
+        }
+
+        //reset all
+        function resetAll(r) {
+            localStorage.clear();
+
+            ArraysMusic.name = [];
+            ArraysMusic.short_description = [];
+            ArraysMusic.price = [];
+            ArraysMusic.image = [];
+            ArraysMusic.amount = [];
+            ArraysMusic.category = [];
+            ArraysMusic.check_in_stock = [];
+            ArraysMusic.manufacturer = [];
+
+            tags.material = [];
+            tags.Importercountry = [];
+            ArraysMusic.tags = tags;
+
+            Cart = [0, 0, 0, 0, 0, 0, 0, 0];
+
+            LoadStorage();
+            upDateSelection();
+        }
+
+        //Adds new Category
+        function addNewCategory() {
+
+            Cat = runAllCategoris();
+            addNCategory = "";
+            for (i = 0; i < Cat.length; i++) {
+                addNCategory += "<option>" + Cat[i] + "</option>";
+            }
+
+            document.getElementById("category").innerHTML = addNCategory;
+        }
+
+        //Runs on all the Categorys
+        function runAllCategoris() {
+            CategoryList = [];
+            for (i = 0; i < ArraysMusic.category.length; i++) {
+                num = ArraysMusic.category[i].toString();
+                if (!CategoryList.includes(num)) {
+                    CategoryList.push(num)
+                }
+            }
+            return CategoryList;
+        }
+
+        //updates the Sales on products
+        function upDateSelection() {
+
+            for (i = 0; i < salesList.price.length; i++) {
+                if (salesList.sale[i] == 1) {
+
+                    eval("document.getElementById('sale0" + i + "').selected=false");
+                    eval("document.getElementById('sale1" + i + "').selected=true");
+                    eval("document.getElementById('sale2" + i + "').selected=false");
+                }
+                else if (salesList.sale[i] == 2) {
+
+                    eval("document.getElementById('sale0" + i + "').selected=false");
+                    eval("document.getElementById('sale1" + i + "').selected=false");
+                    eval("document.getElementById('sale2" + i + "').selected=true");
+                }
+                else {
+                    eval("document.getElementById('sale0" + i + "').selected=true");
+                    eval("document.getElementById('sale1" + i + "').selected=false");
+                    eval("document.getElementById('sale2" + i + "').selected=false");
+                }
+            }
+
+        }
+
+        //selects the sale and update it
+        function SaleSelect(i) {
+
+            SaleName = eval("document.getElementById('sales" + i + "').value");
+
+            SalePrice = ArraysMusic.price[i];
+            SalePrice = SalePrice.toString();
+            SalePrice = SalePrice.replace(",", "");
+            SalePrice = parseInt(SalePrice);
+            if (SaleName == '50% on product') {
+                SalePrice = SalePrice - ((SalePrice / 100) * 50);
+
+                salesList.sale[i] = ["1"];
+            }
+            else if (SaleName == '10% on product') {
+                SalePrice = SalePrice - ((SalePrice / 100) * 10);
+
+                salesList.sale[i] = ["2"];
+            }
+            else {
+
+                salesList.sale[i] = ["0"];
+                SalePrice = 0;
+            }
+            SalePrice = SalePrice.toString();
+            salesList.price[i] = [SalePrice];
+            StoreToStorage();
+            upDateSelection();
+            alert("Sale changed");
+        }
+
+    </script>
+
+    <style>
+
+        /*table CSS*/
+        .inPf {
+            width: 50px;
+        }
+
+        table {
+            border: 1px solid black;
+            width: 100%;
+            table-layout: fixed;
+            border: 1px solid black;
+        }
+
+        th {
+            background-color: #7bd6f3;
+            font-size: 14px;
+            word-wrap: break-word;
+            border: 1px solid black;
+        }
+
+        td {
+            font-size: 14px;
+            word-wrap: break-word;
+            border: 1px solid black;
+        }
+
+        #ItemsInfo {
+            overflow-x: auto;
+            overflow-y: auto;
+            height: 500px;
+        }
+
+        tbody {
+            overflow-x: auto;
+            overflow-y: auto;
+            height: 50px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        /*basic*/
+        body {
+            text-align: center;
+        }
+
+        img {
+            max-width: 50%;
+            max-height: 100%;
+        }
+
+        .Header {
+            background-color: #4467f1;
+        }
+
+        #title {
+            font-size: 40px;
+            margin: auto;
+            font-weight: bold;
+        }
+
+        input[type=text] {
+            width: 300px;
+            margin-bottom: 10px;
+            padding: 7px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        .newStorage .row {
+            text-align: left
+        }
+
+        select {
+            width: 300px;
+        }
+
+        #categoryN {
+            width: 150px
+        }
+
+        #subMit {
+            text-align: center;
+        }
+    </style>
+</head>
+<body onload="LoadStorage()">
+    <div class="Header">
+        <div class="row">
+            <div class="col-2" >
+                
+                <button onclick="document.location='ACMusic.html'">back to shop</button>
+            </div>
+            <div class="col-7" id="title">AC Music Manegment</div>
+            <div class="col-3"></div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <button id="deletInst" onclick="resetAll()">reset all</button>
+            </div>
+        </div>
+    </div>
+    <div class="products">
+        <div class="row">
+            <div class="col-1"></div>
+            <div class="col-10" id="ItemsInfo"></div>
+            <div class="col-1"></div>
+        </div>
+    </div>
+    <div class="bottom">
+        <button id="addInst" onclick="addTostorage(0)">Add new Storage</button>
+        <div id="newStorage">
+            <form onsubmit="submitTheForm()">
+                <div class="row">
+                    <div class="col-2"></div>
+
+                    <div class="col-4">
+                        <label for="newStorageIt">Name</label><br />
+                        <input type="text" id="name" pattern="[A-Za-z0-9\s]{2,}" required/><br />
+
+                        <label for="newStorageIt">Short description</label><br />
+                        <textarea id="short_description" cols="40" rows="2" required></textarea><br />
+
+                        <label for="newStorageIt" >Price</label><br />
+                        <input type="text" id="price" pattern="[0-9]{1,}" required/><br />
+
+                        <label for="newStorageIt">Link to Image(optional)</label><br />
+                        <input type="text" id="image" /><br />
+
+                        <label for="newStorageIt">Amount</label><br />
+                        <input type="text" id="amount" pattern="[0-9]{1,}" required/><br />
+                    </div>
+                    <div class="col-4">
+                        <label for="newStorageIt">Category</label><br />
+                        <select id="category">
+                        </select><br />
+                        <input type="text" id="categoryN" />
+                        <button type="button" onclick="addNewInstrument()">Insert new option</button><br />
+
+                        <label for="newStorageIt">Date</label><br />
+                        <input type="text" id="check_in_stock" placeholder="00.00.0000" pattern="[0-3][0-9].[0-1][0-9].[0-9]{4}" required/><br />
+
+                        <label for="newStorageIt">Manufacturer</label><br />
+                        <input type="text" id="manufacturer" required/><br />
+
+                        <label for="newStorageIt">material</label><br />
+                        <input type="text" id="material" required/><br />
+
+                        <label for="newStorageIt">Importercountry</label><br />
+                        <input type="text" id="Importercountry" required/><br />
+                    </div>
+                    <div class="col-2"></div>
+
+                </div>
+                <div class="row" id="subMit">
+                    <div class="col-12">
+                        <input type="submit">
+                        <button onclick="addTostorage(1)">cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

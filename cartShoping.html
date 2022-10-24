@@ -1,0 +1,235 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Shopping Cart</title>
+    
+    <!--JQuery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!--Bootstrap-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <script>
+        /////////////localStorage Arrays////////////////
+        //Resits
+        ArraysResits = new Object();
+        ArraysResits.firstname = [];
+        ArraysResits.email = [];
+        ArraysResits.cardnumber = [];
+        ArraysResits.expmonth = [];
+        ArraysResits.cvv = [];
+        ArraysResits.Perchest = [];
+        //sales List
+        salesList = new Object();
+        salesList.price = [];
+        salesList.sale = [];
+
+        //load existing storage
+        function LoadFromStorage() {
+
+            //ArraysResits Cart shoppingCart ArraysMusic salesList
+            if (localStorage.ArraysResits != undefined) {
+                ArraysResits = JSON.parse(localStorage["ArraysResits"]);
+            }
+
+            if (localStorage.Cart != undefined) {
+                Cart = JSON.parse(localStorage["Cart"]);
+            }
+
+            if (localStorage.ArraysMusic != undefined) {
+                ArraysMusic = JSON.parse(localStorage["ArraysMusic"]);
+            }
+
+            if (localStorage.salesList != undefined) {
+                salesList = JSON.parse(localStorage["salesList"]);
+            }
+
+        }
+        //store to the storage
+        function StoreToStorage() {
+
+            //ArraysResits Cart ArraysMusic cartList
+
+            ArraysResitsS = JSON.stringify(ArraysResits);
+            localStorage.setItem("ArraysResits", ArraysResitsS);
+
+            CartS = JSON.stringify(Cart);
+            localStorage.setItem("Cart", CartS);
+
+            ArraysMusicS = JSON.stringify(ArraysMusic);
+            localStorage.setItem("ArraysMusic", ArraysMusicS);
+
+            cartListS = JSON.stringify(document.getElementById("cartList").innerHTML);
+            localStorage.setItem("cartList", cartListS);
+        }
+
+        //On load The shopping cart page
+        function ShoppingCartLoad() {
+            LoadFromStorage();
+            ShoppingCartList()
+        }
+
+        //loads the shopping cart
+        function ShoppingCartList() {
+            FullAmount = 0;
+            cartList = "";
+
+            for (i = 0; i < Cart.length; i++) {
+
+                if (Cart[i] != 0) {
+
+                    cartList += "<div class='row' id='shoppingCart'>";
+                    //amount
+                    cartList += "<div class='col-3'>"
+                    cartList += "<p>" + Cart[i] + "</p>";
+                    cartList += "</div>";
+                    //Name + Price
+                    cartList += "<div class='col-4'>"
+                    if (salesList.sale[i] != 0 && salesList.sale[i] != undefined) {
+                        cartList += "<p>" + ArraysMusic.name[i] + "<br />" + salesList.price[i] + "₪</p>";
+                        tmp = String(salesList.price[i]);
+                    } else {
+                        cartList += "<p>" + ArraysMusic.name[i] + "<br />" + ArraysMusic.price[i] + "₪</p>";
+                        tmp = String(ArraysMusic.price[i]);
+                    }
+                    tmp = tmp.replace(",", "");
+                    tmp = parseInt(tmp);
+                    FullAmount += tmp * Cart[i];
+                    cartList += "</div>";
+                    //image
+                    cartList += "<div class='col-5'>"
+                    cartList += "<div><img src='" + ArraysMusic.image[i] + "'></div>";
+                    cartList += "</div>";
+
+                    cartList += "</div><hr>";
+                }
+
+            }
+
+            cartList += "<div id='TotalSum'>Total amount :" + FullAmount + "</div>";
+            document.getElementById("cartList").innerHTML = cartList;
+            StoreToStorage();
+        }
+
+        //The perches
+        function perches() {
+            for (i = 0; i < Cart.length; i++) {
+                tmpNum = parseInt(ArraysMusic.amount[i])
+                tmpNum = tmpNum - Cart[i];
+                ArraysMusic.amount[i] = tmpNum.toString().split();
+            }
+
+            saveResit();
+            Cart = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            StoreToStorage();
+
+            alert("Thank you for you'r purchase");
+
+        }
+
+        //Save the resit into array
+        function saveResit() {
+
+            i = ArraysResits.firstname.length;
+            ArraysResits.firstname[i] = [document.getElementById("fname").value];
+            ArraysResits.email[i] = [document.getElementById("email").value];
+            ArraysResits.cardnumber[i] = [document.getElementById("ccnum").value];
+            ArraysResits.expmonth[i] = [document.getElementById("expmonth").value];
+            ArraysResits.cvv[i] = [document.getElementById("cvv").value];
+            ArraysResits.Perchest[i] = Cart;
+        }
+
+    </script>
+    <style>
+        /*shoping cart CSS*/
+        #shoppingCart {
+            background-color: #ffbd9c;
+        }
+
+        #TotalSum {
+            text-align: center;
+            background-color: #5ec3b1;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            border-style: groove;
+            font-weight: bold;
+        }
+
+        img {
+            max-width: 50%;
+            max-height: 100%;
+        }
+        /*Basic CSS*/
+        body {
+            text-align: center;
+        }
+
+        .Header {
+            background-color: #4467f1;
+        }
+
+        #title {
+            font-size: 40px;
+            margin: auto;
+            font-weight: bold;
+        }
+
+        #cart {
+            margin: auto;
+        }
+
+        /*person data CSS*/
+        input[type=text] {
+            width: 90%;
+            margin-bottom: 10px;
+            padding: 7px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        #Pinfo {
+            text-align: left;
+        }
+    </style>
+</head>
+<body onload="ShoppingCartLoad()">
+    <div class="Header">
+        <div class="row">
+            <div class="col-2" id="manager"></div>
+            <div class="col-7" id="title">AC Music</div>
+            <div class="col-3" id="cart">
+                <button onclick="document.location='ACMusic.html'">continue shopping</button>
+            </div>
+
+        </div>
+    </div>
+    <div class="products" id="product">
+        <div class="row">
+            <div class="col-1"></div>
+            <div class='col-5' id='Pinfo'>
+                <form onsubmit="perches()">
+                    <h3>Billing Address</h3>
+                    <input type="text" id="fname" name="firstname" pattern="[A-Za-z]{2,}+[\s]+[A-Za-z]{2,}" placeholder="Full Name" required><br>
+                    <input type="text" id="email" name="email" pattern="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$" placeholder="Email@example.com" required>
+
+                    <h3>Payment</h3>
+                    <input type="text" id="ccnum" name="cardnumber" pattern="[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4}" placeholder="0000-0000-0000-0000" required><br>
+                    <input type="text" id="expmonth" name="expmonth" pattern="[0-9]{1,2}/[0-9]{1,2}" placeholder="00/00" required><br>
+                    <input type="text" id="cvv" name="cvv" pattern="[0-9]{3}" placeholder="000" required>
+
+                    <input type="submit" name="Continue to checkout">
+                    
+                </form>
+            </div>
+            <div class='col-5' id='cartList'></div>
+            <div class="col-1"></div>
+        </div>
+        </div>
+        <div class="bottom">
+            <form>
+                <div></div>
+            </form>
+        </div>
+</body>
+</html>

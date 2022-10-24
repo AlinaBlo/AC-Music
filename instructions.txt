@@ -1,0 +1,10 @@
+The main page is 
+ACMusic.html
+
+for management Page
+username:alina
+password:1234
+
+when entering the management page, the shopping cart resets
+
+

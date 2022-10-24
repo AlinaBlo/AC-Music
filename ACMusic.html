@@ -1,0 +1,440 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>AC Music</title>
+    <script src="MusicalInst.js"></script>
+   
+    <!--JQuery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!--Bootstrap-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <script>
+        /////////////localStorage Arrays////////////////
+        //MUSIC
+        ArraysMusic = new Object();
+        ArraysMusic.name = [];
+        ArraysMusic.short_description = [];
+        ArraysMusic.price = [];
+        ArraysMusic.image = [];
+        ArraysMusic.amount = [];
+        ArraysMusic.category = [];
+        ArraysMusic.check_in_stock = [];
+        ArraysMusic.manufacturer = [];
+        //MUSIC.TAGS
+        tags = new Object();
+        tags.material = [];
+        tags.Importercountry = [];
+        ArraysMusic.tags = tags;
+        //sales List
+        salesList = new Object();
+        salesList.price = [];
+        salesList.sale = [];
+        //Name Array
+        ArrayMusicSubs = ["name", "short_description", "price", "image", "amount", "category", "check_in_stock", "manufacturer", "tags"];//All the Array subs
+        //Cart Array//
+        Cart = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+
+        //////////////////////////FUNCTIONS///////////////////////////////
+
+        //Entery page//
+        function mainPageLoad() {
+            //if localStorage exist
+            if (localStorage.ArraysMusic == undefined)//local storage is empty
+            {
+                LoadProductsFromList();
+                ShowProducts();
+            }
+            //if localStorage not exist
+            else {
+
+                LoadFromStorage();
+                ShowProducts();
+                addToShoppingList();
+
+            }
+        }
+
+
+        ///////LOADING AND STOREGING FUNCTIONS//////////
+        //Load The Protucts to the Array
+        function LoadProductsFromList() {
+            for (var i = 0; i < ArrayMusicSubs.length; i++) {//takes the array sub
+                for (var j = 0; j < musicalInstruments.length; j++) {//takes the array from the list
+                    if (i == 8) {//spical placement for tags
+                        var tmpA = musicalInstruments[j].tags[0].material.split();
+                        var tmpB = musicalInstruments[j].tags[1].Importer_country.split();
+                        ArraysMusic.tags.material.push(tmpA);
+                        ArraysMusic.tags.Importercountry.push(tmpB);
+                    }
+                    else {//all the others arrays
+                        var tmpA = eval("musicalInstruments[j]." + ArrayMusicSubs[i] + ".split();");
+                        eval("ArraysMusic." + ArrayMusicSubs[i] + ".push(tmpA)");
+                    }
+                }
+            }
+        }
+        //load existing storage
+        function LoadFromStorage() {
+
+            if (localStorage.Cart != undefined) {
+                Cart = JSON.parse(localStorage["Cart"]);
+            }
+
+            if (localStorage.shoppingCart != undefined) {
+                shoppingCart = JSON.parse(localStorage["shoppingCart"]);
+            }
+
+            if (localStorage.ArraysMusic != undefined) {
+                ArraysMusic = JSON.parse(localStorage["ArraysMusic"]);
+            }
+
+            if (localStorage.salesList != undefined) {
+                salesList = JSON.parse(localStorage["salesList"]);
+            }
+
+            if (localStorage.ArraysResits != undefined) {
+                ArraysResits = JSON.parse(localStorage["ArraysResits"]);
+            }
+
+        }
+        //store to the storage
+        function StoreToStorage() {
+
+            CartS = JSON.stringify(Cart);
+            localStorage.setItem("Cart", CartS);
+
+            shoppingCartS = JSON.stringify(document.getElementById("shoppingCart").innerHTML);
+            localStorage.setItem("shoppingCart", shoppingCartS);
+
+            ArraysMusicS = JSON.stringify(ArraysMusic);
+            localStorage.setItem("ArraysMusic", ArraysMusicS);
+
+            salesListS = JSON.stringify(salesList);
+            localStorage.setItem("salesList", salesListS);
+
+            //ArraysResitsS = JSON.stringify(ArraysResits);
+            //localStorage.setItem("ArraysResits", ArraysResitsS);
+
+        }
+
+        ///////SHOW THE PRODUCT AND SHOPPING CART//////////
+        ////Show all the products
+        function ShowProducts() {
+            //a dinamic function
+            productDiv = "";
+            TheSelectedValue = "";
+            //category selection
+            productDiv += "<div id='CategortSelect'>Select Category: ";
+            CategoryListSelect = runAllCategoris();
+            productDiv += "<select id='SelectCat'>";
+            productDiv += "<option selected id='All'>All</option>";
+            for (i = 0; i < CategoryListSelect.length; i++) {
+                productDiv += "<option id='" + CategoryListSelect[i] + "'>";
+                productDiv += CategoryListSelect[i];
+                productDiv += "</option>";
+            }
+
+            productDiv += "</select>";
+            productDiv += "<button onclick='ShowProducts()'>submit</button>"
+            productDiv += "</div>";
+
+            //The products
+            productDiv += "<div class='row'>";
+            for (i = 0; i < ArraysMusic.name.length; i++) {//takes a product
+
+                if (ArraysMusic.amount[i] != 0) {
+                    for (j = 0; j < 2; j++) {
+
+                        if (document.getElementById("SelectCat") == null) {
+                            ProductWr(i);
+                        }
+                        else {
+                            if ((ArraysMusic.amount[i] != 0) && ((ArraysMusic.category[i] == document.getElementById("SelectCat").value) || (document.getElementById("SelectCat").value == "All"))) {//checks if stock empty
+                                ProductWr(i);
+                                TheSelectedValue = document.getElementById("SelectCat").value
+                            }
+                        }
+
+                        i++;
+                        if (!(i < ArraysMusic.name.length)) {
+                            break;
+                        }
+                    }
+                    i--;
+                }
+
+            }
+            productDiv += "</div>";
+
+            document.getElementById("protuctsList").innerHTML = productDiv;//adds to the body
+            StoreToStorage();//store
+            CartgorySelect();
+
+        }
+
+        //The Selected Category
+        function CartgorySelect() {
+            for (i = 0; i < CategoryListSelect.length; i++) {
+                if (CategoryListSelect[i] == TheSelectedValue) {
+                    eval("document.getElementById('" + CategoryListSelect[i] + "').selected=true");
+                }
+                else {
+                    eval("document.getElementById('" + CategoryListSelect[i] + "').selected=false");
+                }
+            }
+        }
+
+        //The product Writhing
+        function ProductWr(i) {
+            ///////////////////////////////
+            //Div Start
+            productDiv += "<div class='col-6' id='ProductInfo'>";
+
+            productDiv += "<div class='row'>";
+            //image
+            productDiv += "<div class='col-5'><img src='" + ArraysMusic.image[i] + "' onerror='imgError(this);'><hr>";
+            //price
+
+            if (salesList.sale[i] != 0 && salesList.sale[i] != undefined) {//check if in sale
+                if (salesList.sale[i] == 1) {
+                    saleSents = "50% sale";
+                }
+                else if (salesList.sale[i] == 2) {
+                    saleSents = "10% sale";
+                }
+
+                productDiv += "<div  id='PriceInfoSale'>";
+                productDiv += saleSents + "<br>" + salesList.price[i] + "₪ ";
+                productDiv += "</div>";
+
+                productDiv += "<div id='PriceInfo'>";
+                productDiv += "<p style='text-decoration-line: line-through;'>" + ArraysMusic.price[i] + "₪</p>";
+                productDiv += "</div>";
+            }
+            else {
+                productDiv += "<div id='PriceInfo'>";
+                productDiv += ArraysMusic.price[i] + "₪";
+                productDiv += "</div>";
+            }
+            //add to cart button
+            productDiv += "<div id='PriceInfo'>";
+            productDiv += "<button id='" + i + "' onclick='addToCart(" + i + ")' >Add to Cart</button>";
+            productDiv += "</div>";
+
+            //Discripthion
+            productDiv += "</div>";
+            productDiv += "<div class='col-7'><b>" + ArraysMusic.name[i] + "</b>";
+            productDiv += "<p><b>Description:</b><textarea readonly>" + ArraysMusic.short_description[i] + "</textarea></p>";
+            productDiv += "<p><b>Manufacturer:</b> " + ArraysMusic.manufacturer[i] + "<br>";
+            productDiv += "<b>category:</b> " + ArraysMusic.category[i] + "<br>";
+            productDiv += "<b>tags:</b><br><b>material:</b> " + ArraysMusic.tags.material[i] + "<br>";
+            productDiv += "<b>Importer country:</b> " + ArraysMusic.tags.Importercountry[i] + "</p>"
+            productDiv += "</div>";
+            productDiv += "</div>";
+            productDiv += "</div>";
+        }
+
+        //Add amount to Cart
+        function addToCart(i) {
+            //adds to cart
+            if (ArraysMusic.amount[i] > Cart[i]) {
+                Cart[i]++;
+            }
+            else
+                alert("No More stock");
+
+            addToShoppingList();
+            StoreToStorage();
+        }
+
+        //Add the product to the cart
+        function addToShoppingList() {
+            FullAmount = 0;
+            shoppingCart = "";
+            for (i = 0; i < Cart.length; i++) {
+
+                if (Cart[i] != 0) {
+                    //The name of the product
+                    shoppingCart += "<div class='row'>";
+                    shoppingCart += "<div class='col-12'>" + ArraysMusic.name[i] + "</div></div>";
+                    //amount button
+                    shoppingCart += "<div class='row'>";
+                    shoppingCart += "<div class='col-6'>Amount :<input type='number' class='inPf' id='quantityC" + i + "' name='quantity' value='" + Cart[i] + "' min='0' max='" + ArraysMusic.amount[i] + "'><br><button id='newAmount" + i + "' onclick='editAmount(" + i + ")'>submit</button></div>";
+
+                    //price + price with sale
+                    if (salesList.sale[i] != 0 && salesList.sale[i] != undefined) {
+
+                        shoppingCart += "<div class='col-6'>Price: " + salesList.price[i] + "₪</div>";
+                        shoppingCart += "</div><hr>"
+
+                        tmp = String(salesList.price[i]);
+
+                    }
+                    else {
+                        shoppingCart += "<div class='col-6'>Price: " + ArraysMusic.price[i] + "₪</div>";
+                        shoppingCart += "</div><hr>"
+
+                        tmp = String(ArraysMusic.price[i]);
+
+                    }
+                    tmp = tmp.replace(",", "");
+                    tmp = parseInt(tmp);
+                    FullAmount += tmp * Cart[i];
+
+                }
+            }
+            shoppingCart += "<hr><b>Full Amount: </b>" + FullAmount + "₪<hr>";//The total price
+
+            document.getElementById("shoppingCart").innerHTML = shoppingCart;
+            StoreToStorage();
+
+        }
+
+        //edits amount into the cart
+        function editAmount(i) {
+
+            newAmount = document.getElementById("quantityC" + i + "").value;
+            Cart[i] = parseInt(newAmount);
+            StoreToStorage();
+            addToShoppingList();
+
+        }
+
+        //if image broken
+        function imgError(image) {
+            image.onerror = "";
+            image.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/600px-No_image_available.svg.png";
+        }
+
+        //Runs on all the Categorys
+        function runAllCategoris() {
+            CategoryList = [];
+            for (i = 0; i < ArraysMusic.category.length; i++) {
+                num = ArraysMusic.category[i].toString();
+                if (!CategoryList.includes(num)) {
+                    CategoryList.push(num)
+                }
+            }
+            return CategoryList;
+        }
+
+    </script>
+
+    <style>
+
+        /*Products CSS*/
+        #CategortSelect {
+            font-size: 20px;
+            background-color: #c5aaff;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        #ProductInfo {
+            background-color: #75dca6;
+            
+            border-style: groove;
+            text-align: left;
+        }
+
+        b {
+            font-size: 15px;
+            word-wrap: break-word;
+        }
+
+        p {
+            word-wrap: break-word;
+        }
+
+        textarea {
+            width: 200px;
+            height: 60px;
+            resize: none;
+        }
+
+        #price {
+            margin: auto;
+            font-size: 30px;
+            color: yellow;
+        }
+
+        #PriceInfo {
+            margin: 0 auto;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #PriceInfoSale {
+            margin: 0 auto;
+            text-align: center;
+            color: red;
+            font-weight: bold;
+        }
+
+
+        /*Cart CSS*/
+        .col-12 {
+            font-weight: bold;
+        }
+
+        #shoppingCart {
+            background-color: #ffdbc1;
+        }
+
+        /*Basic CSS*/
+        body {
+            text-align: center;
+        }
+
+        /*Header CSS*/
+
+        #manager, #cart {
+            margin: auto;
+        }
+
+        .Header {
+            background-color: #4467f1;
+        }
+
+        #title {
+            font-size: 40px;
+            margin: auto;
+            font-weight: bold;
+        }
+
+        .col-5 {
+            background-color: #a0c8d3;
+            padding-left: 1px;
+            padding-right: 1px;
+        }
+    </style>
+</head>
+<body onload="mainPageLoad()">
+
+    <div class="Header">
+        <div class="row">
+            <div class="col-2" id="manager" >
+                <button onclick="document.location='manegmentLogIn.html'">Manager log in</button>
+            </div>
+            <div class="col-7" id="title">Welcome To AC Music</div>
+            <div class="col-3" id="cart" >
+                <button onclick="document.location='cartShoping.html'">Shoping Cart</button>
+            </div>
+        </div>
+    </div>
+    <div class="products" id="product">
+        <div class="row">
+            <div class="col-1" id="catagorySelect"></div>
+            <div class="col-9" id="protuctsList"></div>
+            <div class="col-2" id="shoppingCart"></div>
+        </div>
+    </div>
+    
+</body>
+</html>

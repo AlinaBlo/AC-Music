@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Log in</title>
+    
+    
+    <!--JQuery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!--Bootstrap-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <script>
+        Username = "alina";
+        Password = "1234";
+        function LogInM() {
+
+            if ((document.getElementById("username").value == Username) && (document.getElementById("pass").value == Password)) {
+                resatCart();
+                document.location = 'MangementPage.html';
+            }
+            else {
+                alert("Try Again");
+            }
+        }
+        //resets cart if log in
+        function resatCart() {
+            if (localStorage.Cart != undefined) {
+                Cart = JSON.parse(localStorage["Cart"]);
+            }
+            Cart = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            CartS = JSON.stringify(Cart);
+            localStorage.setItem("Cart", CartS);
+
+        }
+
+
+    </script>
+    <style>
+        label {
+            display: block;
+            font: .9rem 'Fira Sans', sans-serif;
+        }
+
+        input[type = 'submit'],
+        label {
+            margin-top: 1rem;
+        }
+
+        .center {
+            margin: auto;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="center">
+
+        <div>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username">
+        </div>
+
+        <div>
+            <label for="pass">Password:</label>
+            <input type="password" id="pass" name="password" required>
+        </div>
+      
+        <br />
+        <button onclick="LogInM()">Sign in</button>
+        <br />
+        <br />
+        <button onclick="document.location='ACMusic.html'">Back to Store</button>
+    </div>
+</body>
+</html>
